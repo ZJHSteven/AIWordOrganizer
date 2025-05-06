@@ -1,36 +1,53 @@
 from litellm import completion
 
-class LlmApiAgent:
-    def __init__(self, model_name: str):
-        self.model_name = model_name
+# 模块级别的共享状态字典
+_global_shared_state = {}
 
-    def execute(self, messages: list) -> str:
+class Agent:
+    def __init__(self, name: str, model: str, description: str, instruction: str, output_key: str | None = None, tools: list = None):
+        self.name = name
+        self.model_name = model  # model_name is used by litellm.completion
+        self.description = description
+        self.instruction = instruction
+        self.output_key = output_key  # Now optional, defaults to None
+        self.tools = tools if tools is not None else []
+        self.state = _global_shared_state  # 所有实例共享同一个状态字典
+
+    def execute(self, user_provided_text: str | None = None) -> dict:
         """
-        执行 LLM补全请求。
+        执行 LLM 补全请求，使用预定义的指令和用户提供的文本。
+        指令中的占位符会从 self.state 中获取值进行替换。
+        如果提供了 output_key，执行结果会以 self.output_key 为键更新到 self.state。
 
         参数:
-            messages: litellm.completion 所需格式的消息列表。
-                      示例: [{"role": "user", "content": "Hello, world!"}]
+            user_provided_text: 用户提供的需要处理的文本。
 
         返回:
-            LLM 响应的内容。
+            一个字典，其键为 self.output_key (如果提供的话，否则为 None)，值为 LLM 响应的内容。
         """
+        processed_instruction = self.instruction
+        for key, value in self.state.items():
+            placeholder = f"{{{key}}}"
+            processed_instruction = processed_instruction.replace(placeholder, str(value))
+
+        messages = [
+            {"role": "system", "content": processed_instruction},
+            {"role": "user", "content": user_provided_text}
+        ]
+        
         response = completion(
             model=self.model_name,
             messages=messages
         )
-        # 假设响应结构一致且至少有一个选项。
+        
+        llm_response_content = "错误：LLM无响应或响应格式意外。"
         if response and response.choices and len(response.choices) > 0:
-            return response.choices[0].message.content
-        else:
-            # 处理响应可能为空或格式不符合预期的情况
-            return "错误：LLM无响应或响应格式意外。"
-
-# 示例用法 (如果此文件仅用于类定义，则可以删除或注释掉此部分)
-if __name__ == "__main__":
-    # 如何使用 LlmApiAgent 的示例
-    # 请替换为您实际的模型和消息
-    agent = LlmApiAgent(model_name="gemini/gemini-2.0-flash") 
-    user_messages = [{"role": "user", "content": "编写代码，通过 LiteLLM 说 hi"}]
-    result = agent.execute(messages=user_messages)
-    print(result)
+            message_obj = response.choices[0].message
+            if message_obj and hasattr(message_obj, 'content'):
+                llm_response_content = message_obj.content
+        
+        # 仅当 output_key 提供时才更新 state
+        if self.output_key is not None:
+            self.state[self.output_key] = llm_response_content
+        
+        return {self.output_key: llm_response_content}
