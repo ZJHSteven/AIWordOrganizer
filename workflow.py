@@ -50,11 +50,12 @@ agent2_decomposer = Agent(
         "   词根：“cardio-” (心脏，来自希腊语“kardia”)\\n"
         "   词根：“-pathy” (疾病，来自希腊语“pathos”)\\n"
         "\\n"
-        "请确保输出的是纯净的 Markdown 有序列表，绝对不要包含任何额外的解释性文字、Markdown 代码块标记（例如 \\`\\`\\`）或其他任何前缀或后缀。\\n"
+        "请确保输出的是纯净的 Markdown 有序列表。\\n"
+        "重要：输出结果的开头和结尾绝对不能包含三个反引号（\\`\\`\\`）或其他任何形式的代码块标记。输出必须直接以有序列表的第一项开始（例如 '1. EnglishWord...'）。不要添加任何前缀、后缀或解释性文字。\\n"
         "如果输入的字典为空，请输出一个空字符串或提示信息，例如“没有可供分析的单词。”。"
     ),
     tools=[],
-    output_key="decomposed_markdown_list"  # Updated output_key
+    output_key="decomposed_markdown_list"
 )
 
 # 执行代理并获取结果
