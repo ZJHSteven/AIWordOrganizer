@@ -31,7 +31,7 @@ agent2_decomposer = Agent(
     description="接收英汉词对字典，对英文单词进行词根拆解，并以 Markdown 有序列表格式化输出。",
     instruction=(
         "你将接收一个名为 {extracted_pairs} 的 Python 字典作为输入，其中键是英文单词，值是对应的中文释义。\\n"
-        "你的任务是：对于字典中的每一个英文单词，进行详细的词根、词缀分析，并结合其原始的中文释义。\\n"
+        "你的任务是：对每一个英文单词进行详细的词根、词缀分析，尽可能追溯到拉丁语或希腊语等原始构词来源，并结合中文释义进行说明。不要简单以词组形式解释整个单词，而是进一步拆解为词根和词缀组成。\\n"
         "最终，你必须只输出一个 Markdown 格式的有序列表。列表中的每一项代表一个单词的分析结果。\\n"
         "每一项的格式如下，请严格遵守（注意换行和缩进）：\\n"
         "1. EnglishWord\\n"
@@ -139,7 +139,7 @@ def process_markdown_and_insert_to_excel():
     for idx, entry in enumerate(unique_data, start=sheet.max_row + 1):
         sheet.cell(row=idx, column=english_col_idx, value=entry["英文"])
         sheet.cell(row=idx, column=chinese_col_idx, value=entry["中文"])
-        sheet.cell(row=idx, column=tag_col_idx, value="躯干骨及其连接")
+        sheet.cell(row=idx, column=tag_col_idx, value="附肢骨及其连接")
 
     # 保存文件
     wb.save(excel_file_name)
