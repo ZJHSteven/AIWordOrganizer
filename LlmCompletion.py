@@ -1,7 +1,7 @@
 from litellm import completion
 
 # 模块级别的共享状态字典
-_global_shared_state = {}
+state = {}
 
 class Agent:
     def __init__(self, name: str, model: str, description: str, instruction: str, output_key: str | None = None, tools: list = None):
@@ -11,7 +11,7 @@ class Agent:
         self.instruction = instruction
         self.output_key = output_key  # Now optional, defaults to None
         self.tools = tools if tools is not None else []
-        self.state = _global_shared_state  # 所有实例共享同一个状态字典
+        self.state = state  # 所有实例共享同一个状态字典
 
     def execute(self, user_provided_text: str | None = None) -> dict:
         """
